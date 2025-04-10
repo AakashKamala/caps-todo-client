@@ -36,7 +36,8 @@ export default function Modal({ onClose, onSave, initialData }: ModalProps) {
     if (!isFutureDate(dueDate)) return setError("Due date must be today or later.")
 
     const todo = {
-      id: initialData?.id ?? Date.now(),
+      id: initialData?._id,
+      _id: initialData?._id,
       title,
       description,
       dueDate,

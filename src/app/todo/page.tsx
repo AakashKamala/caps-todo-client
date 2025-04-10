@@ -4,9 +4,12 @@ import { useState, useEffect } from 'react'
 import Modal from '@/components/Modal'
 import axios from 'axios'
 import { BACKEND_URL } from '@/config/config'
+import { useRouter } from 'next/navigation'
+import AI from '@/components/AI'
 
 interface Todo {
-  id: number
+  id: any
+  _id: any
   title: string
   description: string
   dueDate: string
@@ -19,19 +22,27 @@ export default function TodoPage() {
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
   const [filter, setFilter] = useState<string>('all')
   const [sort, setSort] = useState<'asc' | 'desc'>('asc')
+  const [del, setDel] = useState(0)
+  const [ai, setAi] = useState(false)
+
+  const router = useRouter()
 
   useEffect(() => {
     const token = localStorage.getItem("token")
+    if(!token){
+      router.push('/login')
+    }
     const fetchTodos = async () => {
       const res = await axios.get(`${BACKEND_URL}/todos`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
+      console.log(res.data)
       setTodos(res.data)
     }
     fetchTodos()
-  }, [])
+  }, [isModalOpen, del])
 
   const handleCreateClick = () => {
     setEditingTodo(null)
@@ -44,8 +55,17 @@ export default function TodoPage() {
   }
 
   const handleDelete = async (id: number) => {
-    await axios.delete(`${BACKEND_URL}/todos/${id}`)
+    console.log(id)
+    const token = localStorage.getItem("token")
+    await axios.delete(`${BACKEND_URL}/todos/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+    })
+    console.log(id)
     setTodos(todos.filter((todo) => todo.id !== id))
+    setDel(del=>del+1)
   }
 
   const handleSave = async (todo: Todo) => {
@@ -53,8 +73,27 @@ export default function TodoPage() {
   try {
     if (editingTodo) {
       // Update logic (if needed, send PATCH/PUT to backend too)
-      const updated = todos.map((t) => (t.id === todo.id ? todo : t))
-      setTodos(updated)
+      // const updated = todos.map((t) => (t.id === todo.id ? todo : t))
+      // setTodos(updated)
+      const response = await axios.post(`${BACKEND_URL}/todos/update`, {
+        todoId: todo.id,
+        title: todo.title,
+        description: todo.description,
+        dueDate: todo.dueDate,
+        status: todo.status
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      // Ensure response.data is the new todo
+      const newTodo = response.data
+      console.log(newTodo)
+
+      // Add it to the UI
+      setTodos((prev) => [...prev, newTodo])
     } else {
       // Create
       const response = await axios.post(`${BACKEND_URL}/todos`, {
@@ -97,11 +136,37 @@ export default function TodoPage() {
 
     function handleTalk(event:any): any {
         try {
-            const response=1
+            setAi(ai=>!ai)
         } catch (error) {
-            
+            console.log(error)
         }
     }
+
+    async function handleAsk(prompt: string) {
+      try {
+        const response = await axios.post(`${BACKEND_URL}/talk`, {
+          prompt: prompt,
+        });
+    
+        const responseText = response.data;
+    
+        // Try to extract JSON from a ```json block
+        const match = responseText.match(/```json\n([\s\S]*?)```/i);
+        const jsonText = match ? match[1] : responseText;
+    
+        // Attempt to parse the JSON
+        const todo: Todo = JSON.parse(jsonText);
+    
+        console.log("Parsed Todo:", todo);
+    
+        // Save the todo
+        handleSave(todo);
+        setAi(ai=>!ai)
+      } catch (error) {
+        console.error("Error in handleAsk:", error);
+      }
+    }
+    
 
   return (
     <div className="min-h-screen px-4 py-8 bg-[var(--background)] text-[var(--foreground)]">
@@ -148,7 +213,7 @@ export default function TodoPage() {
       <div className="space-y-4">
         {filteredTodos.map((todo) => (
           <div
-            key={todo.id}
+            key={todo._id}
             className="bg-[rgba(255,255,255,0.03)] p-4 rounded-xl border border-[rgba(255,255,255,0.1)] shadow"
           >
             <div className="flex justify-between">
@@ -168,7 +233,7 @@ export default function TodoPage() {
                   ✏️
                 </button>
                 <button
-                  onClick={() => handleDelete(todo.id)}
+                  onClick={() => handleDelete(todo._id)}
                   className="text-red-500 border border-[rgba(255,255,255,0.1)] px-2 py-1 rounded"
                 >
                   🗑️
@@ -184,6 +249,13 @@ export default function TodoPage() {
           initialData={editingTodo}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSave}
+        />
+      )}
+
+      {ai && (
+        <AI
+          onClose={() => setAi(false)}
+          onSave={handleAsk}
         />
       )}
     </div>
