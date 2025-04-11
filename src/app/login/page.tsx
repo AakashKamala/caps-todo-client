@@ -1,4 +1,4 @@
-// app/login/page.tsx
+
 'use client'
 
 import { BACKEND_URL } from '@/config/config'
@@ -17,16 +17,25 @@ export default function LoginPage() {
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault()
     console.log({ email, password })
-    const response = await axios.post(`${BACKEND_URL}/login`, {
-        email,
-        password
-    })
-
-    console.log(response)
-    localStorage.setItem("token", response.data.token)
-
-    router.push("/todo")
-    // You can add API call here
+    try {
+      const response = await axios.post(`${BACKEND_URL}/login`, {
+          email,
+          password
+      })
+  
+      console.log(response)
+      if(!response.data.token){
+        alert("email or password didn't match")
+    }
+    else{
+      localStorage.setItem("token", response.data.token)
+  
+      router.push("/todo")
+    }
+    } catch (error) {
+      console.log(error)
+    }
+    
   }
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--background)] text-[var(--foreground)] px-4">

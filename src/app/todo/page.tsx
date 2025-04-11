@@ -88,14 +88,13 @@ export default function TodoPage() {
         },
       })
 
-      // Ensure response.data is the new todo
+    
       const newTodo = response.data
       console.log(newTodo)
 
-      // Add it to the UI
       setTodos((prev) => [...prev, newTodo])
     } else {
-      // Create
+
       const response = await axios.post(`${BACKEND_URL}/todos`, {
         title: todo.title,
         description: todo.description,
@@ -108,11 +107,11 @@ export default function TodoPage() {
         },
       })
 
-      // Ensure response.data is the new todo
+
       const newTodo = response.data
       console.log(newTodo)
 
-      // Add it to the UI
+
       setTodos((prev) => [...prev, newTodo])
     }
   } catch (err) {
@@ -142,6 +141,11 @@ export default function TodoPage() {
         }
     }
 
+    function handleLogout(){
+      localStorage.removeItem("token")
+      router.push("/login")
+    }
+
     async function handleAsk(prompt: string) {
       try {
         const response = await axios.post(`${BACKEND_URL}/talk`, {
@@ -150,16 +154,16 @@ export default function TodoPage() {
     
         const responseText = response.data;
     
-        // Try to extract JSON from a ```json block
+       
         const match = responseText.match(/```json\n([\s\S]*?)```/i);
         const jsonText = match ? match[1] : responseText;
     
-        // Attempt to parse the JSON
+        
         const todo: Todo = JSON.parse(jsonText);
     
         console.log("Parsed Todo:", todo);
     
-        // Save the todo
+        
         handleSave(todo);
         setAi(ai=>!ai)
       } catch (error) {
@@ -184,6 +188,12 @@ export default function TodoPage() {
             className="bg-[#6366f1] hover:bg-[#4f46e5] text-white px-4 py-2 rounded-md shadow"
           >
             + talk to App
+          </button>
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow"
+          >
+            Logout
           </button>
         </div>
       </div>

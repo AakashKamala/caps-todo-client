@@ -1,4 +1,4 @@
-// app/signup/page.tsx
+
 'use client'
 
 import { BACKEND_URL } from '@/config/config'
@@ -25,10 +25,15 @@ export default function SignupPage() {
     })
 
     console.log(response)
+    if(!response.data.token){
+      alert("user already exists")
+  }
+  else{
     localStorage.setItem("token", response.data.token)
 
     router.push("/todo")
-    // You can add API call here
+  }
+    
   }
 
   return (
