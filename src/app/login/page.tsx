@@ -6,6 +6,7 @@ import axios from 'axios'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 
 export default function LoginPage() {
 
@@ -25,10 +26,12 @@ export default function LoginPage() {
   
       console.log(response)
       if(!response.data.token){
-        alert("email or password didn't match")
+        // alert("email or password didn't match")
+        toast.error("email or password didn't match")
     }
     else{
       localStorage.setItem("token", response.data.token)
+      toast.success("login successful")
   
       router.push("/todo")
     }

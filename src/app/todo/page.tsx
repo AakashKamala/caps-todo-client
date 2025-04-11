@@ -6,6 +6,7 @@ import axios from 'axios'
 import { BACKEND_URL } from '@/config/config'
 import { useRouter } from 'next/navigation'
 import AI from '@/components/AI'
+import toast from 'react-hot-toast'
 
 interface Todo {
   id: any
@@ -143,6 +144,7 @@ export default function TodoPage() {
 
     function handleLogout(){
       localStorage.removeItem("token")
+      toast.success("logout successful")
       router.push("/login")
     }
 

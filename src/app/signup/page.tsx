@@ -6,6 +6,7 @@ import axios from 'axios'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 
 export default function SignupPage() {
 
@@ -26,10 +27,12 @@ export default function SignupPage() {
 
     console.log(response)
     if(!response.data.token){
-      alert("user already exists")
+      // alert("user already exists")
+      toast.error('user already exists')
   }
   else{
     localStorage.setItem("token", response.data.token)
+    toast.success('Signup successful! Redirecting...')
 
     router.push("/todo")
   }
